@@ -1,0 +1,32 @@
+CẤU TRÚC
+  public/        Giao diện (index.html, style.css, script.js, config.js)
+  server.js      Máy chủ Node.js thuần (không cần cài thư viện) - phục vụ public/ + /api/lookup
+  package.json   Lệnh chạy chuẩn: npm start
+
+VÌ SAO VẪN CẦN server.js?
+  Trình duyệt không được gọi thẳng web trường (bị chặn CORS), nên phải có 1 máy chủ
+  đứng giữa. server.js là ứng dụng Node.js tiêu chuẩn, host nào chạy được Node đều nhận.
+
+==================================================================
+CÁCH 1 - CHẠY TRÊN MÁY (như cũ)
+  Bấm đúp chay.bat  (hoặc: npm start)  ->  mở http://localhost:8000
+
+==================================================================
+CÁCH 2 - ĐƯA LÊN MẠNG, CẢ WEB + API Ở CÙNG MỘT CHỖ (khuyên dùng)
+  Dùng host chạy được Node.js: Render, Railway, Koyeb, Fly.io, Replit, VPS, cPanel...
+    - Build command : (để trống)  hoặc  npm install
+    - Start command : npm start
+  Host tự đặt PORT, không cần sửa gì. config.js để trống.
+
+==================================================================
+CÁCH 3 - GIAO DIỆN Ở HOST TĨNH (Netlify, GitHub Pages, Cloudflare Pages, Vercel...)
+  Host tĩnh KHÔNG chạy được server.js, nên:
+    1. Chạy server.js ở một host Node (Cách 2), lấy địa chỉ, VD https://tracuu.onrender.com
+    2. Mở public/config.js, điền:
+         window.TRACUU_API_ORIGIN = 'https://tracuu.onrender.com';
+    3. Đưa thư mục public/ lên host tĩnh (Netlify: kéo thả thư mục public,
+       hoặc đặt "Publish directory" = public, Build command để trống).
+
+LƯU Ý
+- Muốn tra nhanh hơn/chậm hơn: sửa CONCURRENT_BATCH_SIZE trong public/script.js (mặc định 10).
+- Kiểm tra từng SBD: mở <địa chỉ>/api/lookup?code=203001&debug=1

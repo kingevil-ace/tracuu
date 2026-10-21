@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tra cứu và thống kê</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header tối giản -->
+    <header class="app-header">
+      <h1 class="brand-title">Tra cứu và thống kê</h1>
+      <button type="button" id="themeToggleBtn" class="btn btn-secondary btn-sm">
+        <span id="themeLabel">Giao diện Tối</span>
+      </button>
+    </header>
+
+    <!-- Khu vực nhập SBD & gợi ý dải SBD Phân hiệu 2 -->
+    <section class="card" aria-labelledby="formHeading">
+      <div class="card-header">
+        <h2 id="formHeading" class="card-title">Nhập khoảng Số Báo Danh</h2>
+      </div>
+
+      <div class="sbd-info-box">
+        <div class="sbd-info-title">Phân hiệu 2:</div>
+        <div class="sbd-grade-list">
+          <button type="button" class="grade-range-btn" data-start="204001" data-end="204202">
+            khối 6: 204001 - 204202
+          </button>
+          <button type="button" class="grade-range-btn" data-start="203001" data-end="203183">
+            khối 7: 203001 - 203183
+          </button>
+          <button type="button" class="grade-range-btn" data-start="202001" data-end="202180">
+            khối 8: 202001 - 202180
+          </button>
+          <button type="button" class="grade-range-btn" data-start="201001" data-end="201168">
+            khối 9: 201001 - 201168
+          </button>
+        </div>
+      </div>
+
+      <form id="lookupForm" novalidate>
+        <div class="lookup-grid">
+          <div class="form-group">
+            <label for="sbdStart" class="form-label">SBD bắt đầu</label>
+            <input
+              type="text"
+              id="sbdStart"
+              class="form-input"
+              placeholder="Ví dụ: 203001"
+              value="203001"
+              inputmode="numeric"
+              autocomplete="off"
+              required
+            />
+            <span id="errStart" class="error-msg" role="alert"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="sbdEnd" class="form-label">SBD kết thúc</label>
+            <input
+              type="text"
+              id="sbdEnd"
+              class="form-input"
+              placeholder="Ví dụ: 203183"
+              value="203183"
+              inputmode="numeric"
+              autocomplete="off"
+              required
+            />
+            <span id="errEnd" class="error-msg" role="alert"></span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="startBtn" class="btn btn-primary">
+            Bắt đầu tra cứu
+          </button>
+          <button type="button" id="stopBtn" class="btn btn-danger hidden">
+            Dừng tra cứu
+          </button>
+        </div>
+      </form>
+
+      <!-- Thanh tiến trình thực tế -->
+      <div id="progressWrapper" class="progress-wrapper hidden" aria-live="polite">
+        <div class="progress-header">
+          <div class="progress-status">
+            <span id="pulseDot" class="pulse-dot"></span>
+            <span id="progressStatusText">Đang chuẩn bị...</span>
+          </div>
+          <div id="progressStatsText" class="progress-Stats">0/0 SBD (0%)</div>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trạng thái chưa có dữ liệu -->
+    <section id="emptyStateCard" class="card empty-state">
+      <p>Chọn một khối ở trên hoặc nhập khoảng SBD rồi nhấn <strong>"Bắt đầu tra cứu"</strong>.</p>
+    </section>
+
+    <!-- Khu vực kết quả & thống kê -->
+    <main id="resultsDashboard" class="hidden">
+      <!-- 4 thẻ số liệu thống kê (không kèm nhận xét) -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Số lượng học sinh</div>
+          <div id="kpiTotalStudents" class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Điểm Tổng cao nhất</div>
+          <div id="kpiMaxScore" class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Điểm Tổng trung bình</div>
+          <div id="kpiAvgScore" class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Điểm Tổng thấp nhất</div>
+          <div id="kpiMinScore" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <!-- Biểu đồ phổ điểm theo số điểm hiện có (như ảnh mẫu) -->
+      <section class="card" aria-labelledby="distHeading">
+        <div class="card-header">
+          <h2 id="distHeading" class="card-title">Biểu đồ phổ điểm</h2>
+          <select id="distSubjectSelect" class="form-select" style="width:auto; min-width: 190px; font-size:0.875rem; padding:0.45rem 0.75rem;">
+            <option value="Tổng">Môn: Tổng</option>
+          </select>
+        </div>
+        <div id="distributionContainer" class="histogram-scroll-wrapper"></div>
+      </section>
+
+      <!-- Bục Podium Top 3 cao nhất -->
+      <section class="card" aria-labelledby="podiumHeading">
+        <div class="card-header">
+          <h2 id="podiumHeading" class="card-title">Top 3 điểm cao nhất</h2>
+        </div>
+        <div id="podiumStage" class="podium-stage"></div>
+      </section>
+
+      <!-- Top 3 điểm thấp nhất (trung lập, không cảnh báo hay nhận xét) -->
+      <section class="card" aria-labelledby="lowestHeading">
+        <div class="card-header">
+          <h2 id="lowestHeading" class="card-title">Top 3 điểm thấp nhất</h2>
+        </div>
+        <div id="bottom3List" class="neutral-list"></div>
+      </section>
+
+      <!-- Bảng xếp hạng theo từng môn / Điểm Tổng -->
+      <section class="card" aria-labelledby="rankingHeading">
+        <div class="card-header">
+          <h2 id="rankingHeading" class="card-title">Bảng xếp hạng</h2>
+          <select id="rankingTypeSelect" class="form-select" style="width:auto; min-width: 210px; font-size:0.875rem; padding:0.45rem 0.75rem;">
+            <option value="Tổng">Xếp hạng theo: Tổng</option>
+          </select>
+        </div>
+        <div class="table-responsive fade-in">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Hạng</th>
+                <th>SBD</th>
+                <th>Họ và tên</th>
+                <th>Lớp</th>
+                <th id="rankingScoreColHeader" class="col-num">Điểm</th>
+                <th class="col-num">Tỷ lệ phần trăm</th>
+              </tr>
+            </thead>
+            <tbody id="rankingTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Bảng chi tiết toàn bộ dữ liệu -->
+      <section class="card" aria-labelledby="tableHeading">
+        <div class="card-header">
+          <h2 id="tableHeading" class="card-title">Bảng điểm chi tiết (<span id="tableCountLabel">0</span>)</h2>
+          <button type="button" id="exportCsvBtn" class="btn btn-secondary btn-sm">
+            Xuất file CSV
+          </button>
+        </div>
+
+        <div class="table-controls">
+          <div class="table-search-group">
+            <input
+              type="search"
+              id="searchInput"
+              class="form-input table-search-input"
+              placeholder="Tìm SBD, Họ và tên..."
+            />
+            <select id="classFilter" class="form-select table-class-select">
+              <option value="ALL">Tất cả các lớp</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive fade-in">
+          <table class="score-table">
+            <thead id="scoreTableHead"></thead>
+            <tbody id="scoreTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
